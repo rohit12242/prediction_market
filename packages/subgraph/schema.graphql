@@ -1,0 +1,49 @@
+type Market @entity {
+  id: ID!                      # market ID (uint256 as string)
+  creator: Bytes!
+  question: String!
+  description: String!
+  endTime: BigInt!
+  resolutionTime: BigInt!
+  outcome: String             # "Unresolved" | "Yes" | "No" | "Invalid"
+  yesShares: BigDecimal!
+  noShares: BigDecimal!
+  totalLiquidity: BigDecimal!
+  resolved: Boolean!
+  createdAt: BigInt!
+  createdAtBlock: BigInt!
+  trades: [Trade!]! @derivedFrom(field: "market")
+  positions: [Position!]! @derivedFrom(field: "market")
+}
+
+type Trade @entity {
+  id: ID!                     # txHash-logIndex
+  market: Market!
+  trader: Bytes!
+  isYes: Boolean!
+  amountIn: BigDecimal!
+  sharesOut: BigDecimal!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  txHash: Bytes!
+}
+
+type Position @entity {
+  id: ID!                     # marketId-trader
+  market: Market!
+  trader: Bytes!
+  yesShares: BigDecimal!
+  noShares: BigDecimal!
+  totalInvested: BigDecimal!
+  realizedPnl: BigDecimal!
+  updatedAt: BigInt!
+}
+
+type Resolution @entity {
+  id: ID!                     # marketId
+  market: Market!
+  outcome: String!
+  resolvedAt: BigInt!
+  resolvedAtBlock: BigInt!
+  txHash: Bytes!
+}

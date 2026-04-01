@@ -1,0 +1,28 @@
+{
+  "name": "@fluxmarkets/contracts",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "forge build",
+    "test": "forge test -vvv",
+    "test:fork": "forge test -vvv --fork-url $RPC_URL_POLYGON",
+    "coverage": "forge coverage --report lcov",
+    "gas": "forge test --gas-report",
+    "snapshot": "forge snapshot",
+    "lint": "forge fmt --check",
+    "format": "forge fmt",
+    "clean": "forge clean",
+    "deploy:local": "make deploy-local",
+    "deploy:amoy": "make deploy-amoy",
+    "deploy:polygon": "make deploy-polygon",
+    "seed:local": "make seed-local",
+    "verify": "make verify"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "dotenv": "^16.4.0",
+    "hardhat": "^2.22.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.5.0"
+  }
+}

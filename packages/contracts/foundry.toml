@@ -1,0 +1,50 @@
+[profile.default]
+src          = "src"
+out          = "out"
+libs         = ["lib"]
+test         = "test"
+cache_path   = "cache"
+solc         = "0.8.24"
+optimizer    = true
+optimizer_runs = 200
+via_ir       = true
+ffi          = false
+remappings   = [
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+]
+
+# Allow scripts to read/write the deployments directory
+fs_permissions = [
+    { access = "read-write", path = "deployments/" },
+    { access = "read",       path = "out/" },
+]
+
+[profile.default.fmt]
+line_length     = 120
+tab_width       = 4
+bracket_spacing = true
+
+# ── CI profile: extra verbosity, stricter ──────────────────────────────────────
+[profile.ci]
+verbosity = 3
+
+# ── Fork profile: runs tests against live Polygon state ───────────────────────
+[profile.fork]
+verbosity    = 2
+fuzz_runs    = 512
+invariant_runs = 64
+
+# ─── RPC endpoints ────────────────────────────────────────────────────────────
+[rpc_endpoints]
+localhost      = "http://127.0.0.1:8545"
+polygon        = "${RPC_URL_POLYGON}"
+polygon_amoy   = "${RPC_URL_POLYGON_AMOY}"
+mainnet        = "${RPC_URL_MAINNET}"
+sepolia        = "${RPC_URL_SEPOLIA}"
+
+# ─── Etherscan / Polygonscan verification ─────────────────────────────────────
+[etherscan]
+polygon = { key = "${POLYGONSCAN_API_KEY}", url = "https://api.polygonscan.com/api", chain = 137 }
+polygon_amoy = { key = "${POLYGONSCAN_API_KEY}", url = "https://api-amoy.polygonscan.com/api", chain = 80002 }
+mainnet = { key = "${ETHERSCAN_API_KEY}" }
+sepolia = { key = "${ETHERSCAN_API_KEY}", url = "https://api-sepolia.etherscan.io/api" }

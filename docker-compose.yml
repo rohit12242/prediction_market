@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fluxmarkets-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fluxmarkets}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fluxmarkets}
+      POSTGRES_DB: ${POSTGRES_DB:-fluxmarkets}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./packages/backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fluxmarkets}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: fluxmarkets-redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  graph-node:
+    image: graphprotocol/graph-node:latest
+    container_name: fluxmarkets-graph-node
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ipfs:
+        condition: service_started
+    environment:
+      postgres_host: postgres
+      postgres_user: ${POSTGRES_USER:-fluxmarkets}
+      postgres_pass: ${POSTGRES_PASSWORD:-fluxmarkets}
+      postgres_db: ${POSTGRES_DB:-fluxmarkets}
+      ipfs: "ipfs:5001"
+      ethereum: "hardhat:http://host.docker.internal:8545"
+      GRAPH_LOG: info
+    ports:
+      - "8000:8000"   # GraphQL HTTP
+      - "8001:8001"   # GraphQL WS
+      - "8020:8020"   # JSON-RPC admin
+      - "8030:8030"   # Indexing status
+      - "8040:8040"   # Metrics
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  ipfs:
+    image: ipfs/kubo:latest
+    container_name: fluxmarkets-ipfs
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+      - "8080:8080"
+    volumes:
+      - ipfs_data:/data/ipfs
+
+volumes:
+  postgres_data:
+  redis_data:
+  ipfs_data:

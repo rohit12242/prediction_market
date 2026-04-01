@@ -1,0 +1,21 @@
+{
+  "name": "@fluxmarkets/subgraph",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy:local": "graph deploy --node http://localhost:8020 --ipfs http://localhost:5001 fluxmarkets/core",
+    "deploy:studio": "graph deploy --studio fluxmarkets",
+    "create:local": "graph create --node http://localhost:8020 fluxmarkets/core",
+    "remove:local": "graph remove --node http://localhost:8020 fluxmarkets/core",
+    "lint": "eslint src --ext .ts",
+    "clean": "rm -rf build generated"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-ts": "^0.35.0"
+  },
+  "devDependencies": {
+    "@graphprotocol/graph-cli": "^0.80.0"
+  }
+}
