@@ -5,17 +5,20 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy:local": "graph deploy --node http://localhost:8020 --ipfs http://localhost:5001 fluxmarkets/core",
+    "lint": "eslint src --ext .ts --max-warnings 0",
+    "test": "graph test",
+    "deploy:local": "graph create --node http://localhost:8020 fluxmarkets/core && graph deploy --node http://localhost:8020 --ipfs http://localhost:5001 --version-label v0.0.1 fluxmarkets/core",
     "deploy:studio": "graph deploy --studio fluxmarkets",
-    "create:local": "graph create --node http://localhost:8020 fluxmarkets/core",
+    "deploy:hosted": "graph deploy --product hosted-service fluxmarkets/fluxmarkets-core",
     "remove:local": "graph remove --node http://localhost:8020 fluxmarkets/core",
-    "lint": "eslint src --ext .ts",
+    "create:local": "graph create --node http://localhost:8020 fluxmarkets/core",
     "clean": "rm -rf build generated"
   },
   "dependencies": {
     "@graphprotocol/graph-ts": "^0.35.0"
   },
   "devDependencies": {
-    "@graphprotocol/graph-cli": "^0.80.0"
+    "@graphprotocol/graph-cli": "^0.80.0",
+    "matchstick-as": "^0.6.0"
   }
 }

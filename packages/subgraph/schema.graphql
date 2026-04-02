@@ -1,49 +1,196 @@
-type Market @entity {
-  id: ID!                      # market ID (uint256 as string)
-  creator: Bytes!
-  question: String!
-  description: String!
-  endTime: BigInt!
-  resolutionTime: BigInt!
-  outcome: String             # "Unresolved" | "Yes" | "No" | "Invalid"
-  yesShares: BigDecimal!
-  noShares: BigDecimal!
+type Protocol @entity {
+  id: ID!                      # "fluxmarkets"
+  totalMarkets: BigInt!
+  activeMarkets: BigInt!
+  resolvedMarkets: BigInt!
+  totalVolume: BigDecimal!
   totalLiquidity: BigDecimal!
-  resolved: Boolean!
+  totalUsers: BigInt!
+  totalTrades: BigInt!
+  totalOrders: BigInt!
+  updatedAt: BigInt!
+}
+
+type Market @entity {
+  id: ID!                      # conditionId hex string
+  question: String!
+  description: String
+  category: String!
+  ipfsHash: String!
+  dataIpfsHash: String!
+  creator: Bytes!
   createdAt: BigInt!
   createdAtBlock: BigInt!
+  resolutionTime: BigInt!
+  status: String!              # Active | PendingResolution | Resolved | Cancelled
+  outcome: String              # YES | NO | INVALID — null until resolved
+  payouts: [BigInt!]!
+
+  # FPMM AMM state
+  fpmmAddress: Bytes
+  yesReserve: BigDecimal!
+  noReserve: BigDecimal!
+  liquidity: BigDecimal!
+
+  # CLOB state
+  clobAddress: Bytes
+  bestBid: BigDecimal!
+  bestAsk: BigDecimal!
+
+  # Derived price / probability
+  probability: BigDecimal!     # implied YES probability 0-1
+  lastTradePrice: BigDecimal!  # last executed trade price (0-1 scale)
+
+  # Volume (all in USDC, 6-decimal normalized to human units)
+  totalVolume: BigDecimal!
+  fpmmVolume: BigDecimal!
+  clobVolume: BigDecimal!
+
+  # Counts
+  tradeCount: BigInt!
+  orderCount: BigInt!
+  uniqueTraderCount: BigInt!
+
+  # Relations
   trades: [Trade!]! @derivedFrom(field: "market")
+  orders: [Order!]! @derivedFrom(field: "market")
   positions: [Position!]! @derivedFrom(field: "market")
+  liquidityEvents: [LiquidityEvent!]! @derivedFrom(field: "market")
+  assertion: OracleAssertion @derivedFrom(field: "market")
+  hourSnapshots: [MarketHourSnapshot!]! @derivedFrom(field: "market")
+  daySnapshots: [MarketDaySnapshot!]! @derivedFrom(field: "market")
+}
+
+type Order @entity {
+  id: ID!                      # orderId bytes32 hex
+  market: Market!
+  conditionId: Bytes!
+  trader: User!
+  side: String!                # BUY | SELL
+  outcomeIndex: BigInt!
+  outcomeName: String!         # YES | NO
+  price: BigDecimal!           # 0-1 scaled
+  originalSize: BigDecimal!    # outcome tokens, 18-dec normalized
+  filledSize: BigDecimal!
+  remainingSize: BigDecimal!
+  usdcCommitted: BigDecimal!
+  status: String!              # Open | Filled | PartiallyFilled | Cancelled
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  blockNumber: BigInt!
+  txHash: Bytes!
 }
 
 type Trade @entity {
-  id: ID!                     # txHash-logIndex
+  id: ID!
   market: Market!
-  trader: Bytes!
-  isYes: Boolean!
-  amountIn: BigDecimal!
-  sharesOut: BigDecimal!
+  conditionId: Bytes!
+  source: String!              # FPMM | CLOB
+  buyer: Bytes!
+  seller: Bytes!
+  outcomeIndex: BigInt!
+  outcomeName: String!
+  price: BigDecimal!           # 0-1
+  size: BigDecimal!            # outcome tokens (normalized)
+  usdcVolume: BigDecimal!      # USDC value
   timestamp: BigInt!
   blockNumber: BigInt!
   txHash: Bytes!
 }
 
 type Position @entity {
-  id: ID!                     # marketId-trader
+  id: ID!                      # conditionId-userAddress
   market: Market!
-  trader: Bytes!
+  user: User!
   yesShares: BigDecimal!
   noShares: BigDecimal!
+  avgCostYes: BigDecimal!      # avg USDC per YES share
+  avgCostNo: BigDecimal!       # avg USDC per NO share
   totalInvested: BigDecimal!
   realizedPnl: BigDecimal!
   updatedAt: BigInt!
 }
 
-type Resolution @entity {
-  id: ID!                     # marketId
+type User @entity {
+  id: ID!                      # wallet address (lowercase)
+  totalVolume: BigDecimal!
+  fpmmVolume: BigDecimal!
+  clobVolume: BigDecimal!
+  marketsTraded: BigInt!
+  marketsCreated: BigInt!
+  tradeCount: BigInt!
+  orderCount: BigInt!
+  realizedPnl: BigDecimal!
+  createdAt: BigInt!
+  lastActiveAt: BigInt!
+  positions: [Position!]! @derivedFrom(field: "user")
+  orders: [Order!]! @derivedFrom(field: "trader")
+}
+
+type LiquidityEvent @entity {
+  id: ID!
   market: Market!
-  outcome: String!
-  resolvedAt: BigInt!
-  resolvedAtBlock: BigInt!
+  provider: Bytes!
+  type: String!                # ADD | REMOVE
+  usdcAmount: BigDecimal!
+  lpShares: BigDecimal!
+  timestamp: BigInt!
+  blockNumber: BigInt!
   txHash: Bytes!
+}
+
+type OracleAssertion @entity {
+  id: ID!                      # assertionId hex
+  market: Market!
+  assertionId: Bytes!
+  claimedOutcome: BigInt!
+  asserter: Bytes!
+  disputed: Boolean!
+  disputer: Bytes
+  settled: Boolean!
+  result: Boolean
+  initiatedAt: BigInt!
+  settledAt: BigInt
+  txHash: Bytes!
+}
+
+type MarketHourSnapshot @entity {
+  id: ID!                      # conditionId-hourIndex
+  market: Market!
+  timestamp: BigInt!
+  hour: Int!
+  open: BigDecimal!
+  high: BigDecimal!
+  low: BigDecimal!
+  close: BigDecimal!
+  volume: BigDecimal!
+  tradeCount: BigInt!
+  liquidity: BigDecimal!
+}
+
+type MarketDaySnapshot @entity {
+  id: ID!                      # conditionId-dayIndex
+  market: Market!
+  timestamp: BigInt!
+  date: Int!
+  open: BigDecimal!
+  high: BigDecimal!
+  low: BigDecimal!
+  close: BigDecimal!
+  volume: BigDecimal!
+  tradeCount: BigInt!
+  liquidity: BigDecimal!
+}
+
+# Tracks which FPMM/CLOB addresses belong to which conditionId (for template routing)
+type FPMMMarketLink @entity {
+  id: ID!                      # fpmmAddress lowercase
+  conditionId: Bytes!
+  market: Market!
+}
+
+type CLOBMarketLink @entity {
+  id: ID!                      # clobAddress lowercase
+  conditionId: Bytes!
+  market: Market!
 }

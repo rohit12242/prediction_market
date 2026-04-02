@@ -1,5 +1,6 @@
+# Copy addresses from deployments/localhost.json after running make deploy-local
 specVersion: 1.0.0
-description: FluxMarkets prediction market subgraph — indexes all FPMM, CLOB, and oracle events
+description: FluxMarkets prediction market subgraph — local development (hardhat)
 repository: https://github.com/fluxmarkets/fluxmarkets
 schema:
   file: ./schema.graphql
@@ -11,7 +12,7 @@ dataSources:
   # ── MarketFactory — primary entry point for market metadata + category ──────
   - kind: ethereum
     name: MarketFactory
-    network: matic
+    network: hardhat
     source:
       address: "0x0000000000000000000000000000000000000000"
       abi: MarketFactory
@@ -35,7 +36,7 @@ dataSources:
   # ── PredictionMarket — core trading events ────────────────────────────────
   - kind: ethereum
     name: PredictionMarket
-    network: matic
+    network: hardhat
     source:
       address: "0x0000000000000000000000000000000000000000"
       abi: PredictionMarket
@@ -79,7 +80,7 @@ dataSources:
   # ── FPMMFactory — creates FPMM templates ──────────────────────────────────
   - kind: ethereum
     name: FPMMFactory
-    network: matic
+    network: hardhat
     source:
       address: "0x0000000000000000000000000000000000000000"
       abi: FPMMFactory
@@ -102,7 +103,7 @@ dataSources:
   # ── UMAOracleAdapter — resolution oracle ──────────────────────────────────
   - kind: ethereum
     name: UMAOracleAdapter
-    network: matic
+    network: hardhat
     source:
       address: "0x0000000000000000000000000000000000000000"
       abi: UMAOracleAdapter
@@ -130,7 +131,7 @@ templates:
   # ── FixedProductMarketMaker — one per market ──────────────────────────────
   - kind: ethereum
     name: FixedProductMarketMaker
-    network: matic
+    network: hardhat
     source:
       abi: FixedProductMarketMaker
     mapping:
@@ -164,7 +165,7 @@ templates:
   # ── CLOBOrderBook — one per market ────────────────────────────────────────
   - kind: ethereum
     name: CLOBOrderBook
-    network: matic
+    network: hardhat
     source:
       abi: CLOBOrderBook
     mapping:
